@@ -1,67 +1,100 @@
-# assignment3_pyramid_building_optimized.py
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import json
 
 def draw_triangle(ax, x, y, size, upright=True, color="skyblue"):
-    """Optimized triangle drawing with pre-computed height"""
-    h = size * 0.866025  # Pre-computed sqrt(3)/2 ≈ 0.866025
+    """Draw a triangle with proper coordinates"""
+    h = size * 0.866025  # Height of equilateral triangle
     if upright:
-        coords = [(x, y), (x + size, y), (x + size * 0.5, y + h)]
+        # Upright triangle: base at bottom, apex at top
+        coords = [(x, y), (x + size, y), (x + size/2, y + h)]
     else:
-        coords = [(x, y + h), (x + size, y + h), (x + size * 0.5, y)]
-    ax.add_patch(patches.Polygon(coords, closed=True, facecolor=color, edgecolor="black"))
+        # Inverted triangle: base at top, apex at bottom
+        coords = [(x, y + h), (x + size, y + h), (x + size/2, y)]
+    ax.add_patch(patches.Polygon(coords, closed=True, facecolor=color, edgecolor="black", linewidth=0.5))
 
 def pyramid(depth, size=2):
-    """Optimized pyramid with reduced calculations"""
-    fig, ax = plt.subplots(figsize=(depth * 0.8, depth * 0.6))
+    """Create a properly tessellated pyramid"""
+    fig, ax = plt.subplots(figsize=(depth * 1.2, depth * 0.8))
     
-    # Pre-compute constants
-    h_step = size * 0.866025  # sqrt(3)/2 * size
-    half_size = size * 0.5
+    h = size * 0.866025  # Triangle height
+    upright_count = 0
+    inverted_count = 0
     
+    # Calculate total pyramid width for centering
+    max_width = depth * size
+    
+    # Draw all upright triangles first
     for row in range(depth):
-        # Pre-compute row values
-        row_offset = (depth - row - 1) * half_size
-        y_pos = row * h_step
-        upright = (row & 1) == 0  # Bitwise AND faster than modulo
-        color = "skyblue" if upright else "orange"
+        # Y position: start from top, go down
+        y = (depth - row - 1) * h
         
-        # Generate triangles for this row
+        # Number of triangles in this row
+        triangles_in_row = row + 1
+        
+        # X offset to center this row
+        row_width = triangles_in_row * size
+        x_start = (max_width - row_width) / 2
+        
+        # Draw upright triangles for this row
+        for col in range(triangles_in_row):
+            x = x_start + col * size
+            draw_triangle(ax, x, y, size, upright=True, color="skyblue")
+            upright_count += 1
+    
+    
+    for row in range(depth - 1):  
+        # Y positions
+        upper_y = (depth - row - 1) * h      # Upper row Y
+        lower_y = (depth - row - 2) * h      # Lower row Y
+        
+        
+        inv_y = lower_y  # Base of inverted triangle at lower row level
+        
+        # Calculate X positions based on the lower row
+        lower_triangles = row + 2
+        lower_row_width = lower_triangles * size
+        lower_x_start = (max_width - lower_row_width) / 2
+        
+       
         for col in range(row + 1):
-            x_pos = col * size + row_offset
-            draw_triangle(ax, x_pos, y_pos, size, upright, color)
+            # Position inverted triangle in the gap between lower row triangles
+            inv_x = lower_x_start + size * (col + 0.5)
+            draw_triangle(ax, inv_x, inv_y, size, upright=False, color="orange")
+            inverted_count += 1
     
-    # Set proper limits for visualization
-    total_width = depth * size
-    total_height = depth * h_step
-    margin = size * 0.1
+    total_triangles = upright_count + inverted_count
     
-    ax.set_xlim(-margin, total_width + margin)
-    ax.set_ylim(-margin, total_height + margin)
+    # Set visualization limits
+    margin = size * 0.3
+    ax.set_xlim(-margin, max_width + margin)
+    ax.set_ylim(-margin, depth * h + margin)
     ax.set_aspect("equal")
     ax.axis("off")
-    plt.title(f"Pyramid of Depth {depth}")
+    plt.title(f"Tessellated Pyramid - Depth {depth}")
     plt.tight_layout()
     
-    # Save visualization
-    plt.savefig('pyramid_visualization.png', dpi=150, bbox_inches='tight')
-    
     # Save pyramid data
-    import json
-    total_triangles = (depth * (depth + 1)) // 2
     pyramid_data = {
         'depth': depth,
         'size': size,
         'total_triangles': total_triangles,
-        'upright_triangles': sum(row + 1 for row in range(depth) if row % 2 == 0),
-        'inverted_triangles': sum(row + 1 for row in range(depth) if row % 2 == 1)
+        'upright_triangles': upright_count,
+        'inverted_triangles': inverted_count
     }
     
     with open('pyramid_results.json', 'w') as f:
         json.dump(pyramid_data, f, indent=2)
     
+    # Save visualization
+    plt.savefig('pyramid_visualization.png', dpi=150, bbox_inches='tight')
+    
+    print(f"Pyramid (depth {depth}) created with {total_triangles} triangles:")
+    print(f"  - {upright_count} upright triangles (skyblue)")
+    print(f"  - {inverted_count} inverted triangles (orange)")
     print("Results saved to pyramid_results.json and pyramid_visualization.png")
+    
     plt.show()
 
 if __name__ == "__main__":
