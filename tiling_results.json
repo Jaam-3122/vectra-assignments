@@ -1,0 +1,58 @@
+{
+  "room_dimensions": [
+    10,
+    8
+  ],
+  "tiles": [
+    {
+      "x": 0,
+      "y": 0,
+      "size": 4,
+      "color": "green"
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "size": 4,
+      "color": "green"
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "size": 4,
+      "color": "green"
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "size": 4,
+      "color": "green"
+    },
+    {
+      "x": 8,
+      "y": 0,
+      "size": 2,
+      "color": "blue"
+    },
+    {
+      "x": 8,
+      "y": 2,
+      "size": 2,
+      "color": "blue"
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "size": 2,
+      "color": "blue"
+    },
+    {
+      "x": 8,
+      "y": 6,
+      "size": 2,
+      "color": "blue"
+    }
+  ],
+  "total_tiles": 8,
+  "coverage_area": 80
+}
